@@ -2,6 +2,7 @@ from os import listdir
 from types import SimpleNamespace
 import pandas as pd
 import matplotlib.pyplot as plt
+from matplotlib.ticker import StrMethodFormatter as ffmt
 import seaborn as sns
 import numpy as np
 from textwrap import TextWrapper
@@ -122,7 +123,7 @@ diurnal = df.groupby(["season", "hour"]).ND.agg(["min", "mean", "max"])
 diurnal.columns = ["Min", "Mean", "Max"]
 diurnal.reset_index(inplace=True)
 diurnal.set_index("hour", inplace=True)
-fig, axes = plt.subplots(figsize=(14, 12), nrows=4, sharey=True, sharex=True)
+fig, axes = plt.subplots(figsize=(8, 8), nrows=4, sharey=True, sharex=True)
 
 for i, season in enumerate(["Spring", "Summer", "Autumn", "Winter"]):
 
@@ -141,9 +142,10 @@ for i, season in enumerate(["Spring", "Summer", "Autumn", "Winter"]):
     )
     axes[i].legend()
     axes[i].margins(x=0)
+    axes[i].yaxis.set_major_formatter(ffmt(lambda x, pos: f"{x/1000:,.0f}"))
 
 
-axes[0].set_title("Diurnal national energy demand (MW) by season", loc="left")
+axes[0].set_title("Diurnal national energy demand (GW) by season", loc="left")
 axes[-1].set_xlabel("Hour of the day")
 axes[-1].set_xticks(list(range(25)))
 fig.tight_layout()
