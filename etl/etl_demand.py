@@ -3,6 +3,7 @@ from types import SimpleNamespace
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+import numpy as np
 from textwrap import TextWrapper
 
 SETTINGS = SimpleNamespace(
@@ -91,6 +92,64 @@ ax.margins(x=0)
 ax.legend()
 fig.tight_layout()
 fig.show()
+
+
+##### diurnal
+
+df["month"] = df.index.month
+
+seasons = {
+    1: "Winter",
+    2: "Winter",
+    3: "Spring",
+    4: "Spring",
+    5: "Spring",
+    6: "Summer",
+    7: "Summer",
+    8: "Summer",
+    9: "Autumn",
+    10: "Autumn",
+    11: "Autumn",
+    12: "Winter",
+}
+
+df["season"] = df.month.map(seasons).astype("category")
+
+df["hour"] = df.index.hour + df.index.minute / 60
+
+
+diurnal = df.groupby(["season", "hour"]).ND.agg(["min", "mean", "max"])
+diurnal.columns = ["Min", "Mean", "Max"]
+diurnal.reset_index(inplace=True)
+diurnal.set_index("hour", inplace=True)
+fig, axes = plt.subplots(figsize=(14, 12), nrows=4, sharey=True, sharex=True)
+
+for i, season in enumerate(["Spring", "Summer", "Autumn", "Winter"]):
+
+    df_season = diurnal.loc[diurnal.season == season]
+    axes[i].plot(
+        df_season.Mean,
+        color="#003763",
+        label=season,
+    )
+    axes[i].fill_between(
+        df_season.index,
+        df_season.Min,
+        df_season.Max,
+        alpha=0.2,
+        color="black",
+    )
+    axes[i].legend()
+    axes[i].margins(x=0)
+
+
+axes[0].set_title("Diurnal national energy demand (MW) by season", loc="left")
+axes[-1].set_xlabel("Hour of the day")
+axes[-1].set_xticks(list(range(25)))
+fig.tight_layout()
+plt.show()
+
+# TODO: should vary more - check this!
 
 ########### Import/Export
 
