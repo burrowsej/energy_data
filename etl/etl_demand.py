@@ -124,7 +124,7 @@ diurnal.reset_index(inplace=True)
 diurnal.set_index("hour", inplace=True)
 # plt.style.use('ggplot')
 
-fig, axes = plt.subplots(figsize=(12, 6), ncols=4, sharey=True, sharex=True)
+fig, axes = plt.subplots(figsize=(12, 5), ncols=4, sharey=True, sharex=True)
 
 for i, year in enumerate([2005, 2010, 2015, 2020]):
 
@@ -148,10 +148,16 @@ for i, year in enumerate([2005, 2010, 2015, 2020]):
             alpha=0.1,
             color=seasons[season],
         )
-    axes[i].legend()
     axes[i].margins(x=0)
     axes[i].yaxis.set_major_formatter(mtick.StrMethodFormatter("{x:,.0f}"))
-    axes[i].set_title(year)
+    axes[i].text(
+        1,
+        59,
+        year,
+        horizontalalignment="left",
+        weight="bold",
+        size=12,
+    )
     axes[i].set_xlabel("Hour of day")
     axes[i].set_xticks(np.arange(0, 24, 2))
     axes[i].set_yticks(np.arange(20, 65, 5))
@@ -161,10 +167,15 @@ for i, year in enumerate([2005, 2010, 2015, 2020]):
 axes[0].set_ylabel("UK national energy demand (GW)")
 fig.tight_layout(w_pad=0.1)
 axes[0].text(
-    0,
-    9,
+    22,
+    7.5,
     "Source: National Grid demand data, accessed 03/11/2021. Shaded areas display min and max for the season and hour.",
     alpha=0.5,
+)
+axes[0].legend(
+    ncol=2,
+    frameon=False,
+    loc=(0, -0.23),
 )
 plt.show()
 
