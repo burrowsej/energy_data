@@ -2,7 +2,7 @@ from os import listdir
 from types import SimpleNamespace
 import pandas as pd
 import matplotlib.pyplot as plt
-from matplotlib.ticker import StrMethodFormatter as ffmt
+import matplotlib.ticker as mtick
 import seaborn as sns
 import numpy as np
 from textwrap import TextWrapper
@@ -113,46 +113,62 @@ seasons = {
     11: "Autumn",
     12: "Winter",
 }
-
+df["year"] = df.index.year
 df["season"] = df.month.map(seasons).astype("category")
-
 df["hour"] = df.index.hour + df.index.minute / 60
 
 
-diurnal = df.groupby(["season", "hour"]).ND.agg(["min", "mean", "max"])
-diurnal.columns = ["Min", "Mean", "Max"]
+diurnal = df.groupby(["year", "season", "hour"]).ND.agg(["min", "mean", "max"])
+diurnal = diurnal / 1000  # GW
 diurnal.reset_index(inplace=True)
 diurnal.set_index("hour", inplace=True)
-fig, axes = plt.subplots(figsize=(8, 8), nrows=4, sharey=True, sharex=True)
+# plt.style.use('ggplot')
 
-for i, season in enumerate(["Spring", "Summer", "Autumn", "Winter"]):
+fig, axes = plt.subplots(figsize=(12, 6), ncols=4, sharey=True, sharex=True)
 
-    df_season = diurnal.loc[diurnal.season == season]
-    axes[i].plot(
-        df_season.Mean,
-        color="#003763",
-        label=season,
+for i, year in enumerate([2005, 2010, 2015, 2020]):
+
+    df_year = diurnal.loc[diurnal.year == year]
+
+    seasons = dict(
+        Winter="#00B9E3", Spring="#7CAE00", Summer="#FF61C9", Autumn="#ED8141"
     )
-    axes[i].fill_between(
-        df_season.index,
-        df_season.Min,
-        df_season.Max,
-        alpha=0.2,
-        color="black",
-    )
+
+    for j, season in enumerate(seasons):
+        df_season = df_year.loc[df_year.season == season]
+        axes[i].plot(
+            df_season["mean"],
+            color=seasons[season],
+            label=season,
+        )
+        axes[i].fill_between(
+            df_season.index,
+            df_season["min"],
+            df_season["max"],
+            alpha=0.1,
+            color=seasons[season],
+        )
     axes[i].legend()
     axes[i].margins(x=0)
-    axes[i].yaxis.set_major_formatter(ffmt(lambda x, pos: f"{x/1000:,.0f}"))
+    axes[i].yaxis.set_major_formatter(mtick.StrMethodFormatter("{x:,.0f}"))
+    axes[i].set_title(year)
+    axes[i].set_xlabel("Hour of day")
+    axes[i].set_xticks(np.arange(0, 24, 2))
+    axes[i].set_yticks(np.arange(20, 65, 5))
+    axes[i].xaxis.grid(False)
 
 
-axes[0].set_title("Diurnal national energy demand (GW) by season", loc="left")
-axes[-1].set_xlabel("Hour of the day")
-axes[-1].set_xticks(list(range(25)))
-fig.tight_layout()
+axes[0].set_ylabel("UK national energy demand (GW)")
+fig.tight_layout(w_pad=0.1)
+axes[0].text(
+    0,
+    9,
+    "Source: National Grid demand data, accessed 03/11/2021. Shaded areas display min and max for the season and hour.",
+    alpha=0.5,
+)
 plt.show()
 
 # TODO: should vary more - check this!
-
 ########### Import/Export
 
 title = f"""
